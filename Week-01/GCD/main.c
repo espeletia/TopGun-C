@@ -7,7 +7,7 @@ int main(){
     int a,b;
     int x,y;
     int count = 0;
-    int valid = 0;
+    int valid;
     while(scanf("%d %d", &a, &b) != EOF){
         valid = 0;
         count = 0;
