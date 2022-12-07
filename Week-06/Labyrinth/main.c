@@ -11,7 +11,6 @@ struct AdjListNode
 struct AdjList
 {
     int type;
-    int visited;
     struct AdjListNode *head;
 };
 
@@ -19,6 +18,7 @@ struct Graph
 {
     int V;
     struct AdjList *array;
+    // int *visited;
 };
 
 struct AdjListNode *newAdjListNode(int dest)
@@ -35,6 +35,7 @@ struct Graph *createGraph(int V)
     graph->V = V;
 
     graph->array = (struct AdjList *)malloc(V * sizeof(struct AdjList));
+    // graph->visited = (int *)malloc(V * sizeof(int));
 
     int i;
     for (i = 0; i < V; ++i)
@@ -120,30 +121,30 @@ void printRelevantGraph(struct Graph *graph)
 struct QueueNode
 {
     int data;
+    int steps;
     struct QueueNode *next;
 };
 
-struct QueueNode *newQueueItem(int data)
+struct QueueNode *newQueueItem(int data, int steps)
 {
     struct QueueNode *newNode = (struct QueueNode *)malloc(sizeof(struct QueueNode));
     newNode->data = data;
+    newNode->steps = steps;
     newNode->next = NULL;
     return newNode;
 }
 
-void enQueue(struct QueueNode **head, int data)
+void enQueue(struct QueueNode **head, struct QueueNode **end, int data, int steps)
 {
     if (*head == NULL)
     {
-        *head = newQueueItem(data);
+        *head = newQueueItem(data, steps);
+        *end = *head;
         return;
     }
-    while ((*head)->next != NULL)
-    {
-        *head = (*head)->next;
-    }
-
-    (*head)->next = newQueueItem(data);
+    struct QueueNode* temp = (*end);
+    temp->next = newQueueItem(data, steps);
+    (*end) = temp->next;
 }
 
 void printQueue(struct QueueNode *head)
@@ -154,30 +155,32 @@ void printQueue(struct QueueNode *head)
         return;
     }
     printf("Queue: %d", head->data);
-    struct QueueNode* node = head;
-    while (node->next != NULL)
+    struct QueueNode *node = head->next;
+    while (node != NULL)
     {
         printf(" -> %d", node->data);
         node = node->next;
     }
+    printf("\n");
 }
 
-int deQueue(struct QueueNode **head)
+struct QueueNode deQueue(struct QueueNode **head)
 {
-    int retval = -1;
     struct QueueNode *next_node = NULL;
-
+    struct QueueNode retVal;
     if (*head == NULL)
     {
-        return -1;
+        return retVal;
     }
 
     next_node = (*head)->next;
-    retval = (*head)->data;
+    retVal.data = (*head)->data;
+    retVal.steps = (*head)->steps;
+    retVal.next = NULL;
     free(*head);
     *head = next_node;
 
-    return retval;
+    return retVal;
 }
 
 int isEmpty(struct QueueNode *head)
@@ -189,40 +192,64 @@ int isEmpty(struct QueueNode *head)
     return 0;
 }
 
+int inArray(int *arr, int num, int size)
+{
+    for (int i = 0; i < size; i++)
+    {
+        if (arr[i] == num)
+            return 1;
+    }
+    return 0;
+}
+
+void resetArray(int **arr, int size)
+{
+    for (int i = 0; i < size; i++)
+    {
+        (*arr)[i] = 0;
+    }
+}
 /* - - - BFS ALGORITHM - - - */
 /*BFS stands for BIG F[redacted] SEARCH*/
 int BFS(struct Graph *graph, int startNode, int endNode)
 {
-    if (startNode == endNode)
+    int* visited = (int*) malloc(sizeof(int) * graph->V);
+    for (int i = 0; i < graph->V; i++)
     {
-        return 0;
+        visited[i] = 0;
     }
+    
     struct QueueNode *head = NULL;
-    enQueue(&head, startNode);
+    visited[startNode] = 1;
+    struct QueueNode *end = NULL;
+    enQueue(&head, &end, startNode, 0);
     while (!isEmpty(head))
-    {
-        int currentNode = deQueue(&head);
-        if (currentNode == endNode)
+    { 
+        // printQueue(head);
+        struct QueueNode currentNode = deQueue(&head);
+        // printf("EXPLORTING CURRENT NODE: %d\n", currentNode.data);
+        if (currentNode.data == endNode)
         {
-            printf("Found\n");
-            return 0;
+            free(visited);
+            printf("%d\n", currentNode.steps);
+            return currentNode.steps;
         }
-        struct AdjListNode *node = graph->array[currentNode].head;
-        if (graph->array[currentNode].visited)
-        {
-            continue;
-        }
+        struct AdjListNode *node = graph->array[currentNode.data].head;
         while (node != NULL)
         {
-            printQueue(head);
-            graph->array[currentNode].visited = 1;
-            enQueue(&head, node->dest);
+            if (visited[node->dest] != 1)
+            {
+                visited[node->dest] = 1;
+                enQueue(&head, &end, node->dest, currentNode.steps + 1);
+            }
             node = node->next;
         }
-        printf("%d\n", !isEmpty(head));
+        visited[currentNode.data] = 1;
+        // printf("%d\n", !isEmpty(head));
     }
-    printf("how????\n");
-    return 0;
+    free(visited);
+    printf("-1\n");
+    return -1;
 }
 
 int main()
@@ -231,6 +258,7 @@ int main()
     int col = 0;
     int permaCol = 0;
     char str;
+    int size = 1;
     struct Graph *graph = createGraph(0);
     ///////////////////////////////
     /////////READING GRAPH/////////
@@ -244,7 +272,6 @@ int main()
         if (str == '\n')
         {
             row++;
-            printf("\n");
             continue;
         }
         if (row < 1)
@@ -252,12 +279,15 @@ int main()
             permaCol++;
         }
         col++;
-        printf("%c", str);
         graph->V++;
-        graph->array = (struct AdjList *)realloc(graph->array, graph->V * sizeof(struct AdjList));
+        if(graph->V == size){
+            size = size * 2;
+            graph->array = (struct AdjList *)realloc(graph->array, size * sizeof(struct AdjList));
+        }
+        // graph->visited = (int *)realloc(graph->visited, graph->V * sizeof(int));
         graph->array[graph->V - 1].head = NULL;
         graph->array[graph->V - 1].type = 1;
-        graph->array[graph->V - 1].visited = 0;
+        // graph->visited[graph->V - 1] = 0;
         if (str == '.')
         {
             graph->array[graph->V - 1].type = 0;
@@ -279,7 +309,7 @@ int main()
         }
     }
 
-    printRelevantGraph(graph);
+    // printRelevantGraph(graph);
 
     int startX;
     int startY;
@@ -287,15 +317,16 @@ int main()
     int endY;
     int startNode;
     int endNode;
-    while (scanf("%d %d %d %d", &startX, &startY, &endX, &endY) != EOF)
+    while (scanf("%d %d %d %d", &startY, &startX, &endY, &endX) != EOF)
     {
 
-        // printf("%d %d %d %d\n", startX, startY, endX, endY);
-        startNode = startX + startY * permaCol;
-        endNode = endX + endY * permaCol;
-        // printf("%d, %d\n", startNode, endNode);
+        // printf("%d %d %d %d\n", startY, startX, endY, endX);
+        startNode = startX + (startY * permaCol);
+        endNode = endX + (endY * permaCol);
+        // printf("CALLING BFS FROM NODE: %d, TO NODE: %d\n", startNode, endNode);
         BFS(graph, startNode, endNode);
         // printRelevantGraph(graph);
+        
     }
 
     return 0;
