@@ -92,20 +92,11 @@ void printGraph(struct Graph* graph)
 }
 
 int main(){
-   struct Graph* arr = (struct Graph*) malloc(sizeof(struct Graph));
-   arr->V = 4; 
-   arr->array = (struct List*) malloc(sizeof(struct List) * arr->V);
-   for (int i = 0; i < 4; i++)
-   {
-		arr->array[i].id = CreateCoords(i, 0);
-    	arr->array[i].head = NULL;
+   int* array = (int*) malloc(sizeof(int));
+   int size = 0;
+   while(1){
+		size++;
+		array =(int*) realloc(array, sizeof(int) * size);
    }
-   addEdge(arr,0,1,CreateCoords(0,0), CreateCoords(1,0));
-   addEdge(arr,0,3,CreateCoords(0,0), CreateCoords(1,1));
-   addEdge(arr,0,2,CreateCoords(0,0), CreateCoords(0,1));
-   addEdge(arr,1,3,CreateCoords(1,0), CreateCoords(1,1));
-   addEdge(arr,2,3,CreateCoords(0,1), CreateCoords(1,1));
-   
-   printGraph(arr);
-   return 0;
+   free(array);
 }
