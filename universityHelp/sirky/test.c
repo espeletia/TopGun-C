@@ -142,38 +142,42 @@ void FindSolutions(int *array, int size, int skip, LinkedList *list)
                 j--;
             }
         }
-
-        if (array[landing] == 1 && valid == 1)
+        if (landing < 0 || landing >= size)
+            valid = 0;
+        if (valid)
         {
-            // making the jump
-            array[landing] = 2;
-            array[i] = 0;
-
-            // storing the jump
-            appendToLinkedList(list, i, 0);
-
-            FindSolutions(array, size, skip, list); // recursion
-
-            // undoing the jump to test other possible solutions
-            array[landing] = 1;
-            array[i] = 1;
-            // removing the last jump from the list
-            if (list->tail == list->head)
+            if (array[landing] == 1)
             {
-                free(list->head);
-                list->head = NULL;
-                list->tail = NULL;
-            }
-            else
-            {
-                Node *current = list->head;
-                while (current->next != list->tail)
+                // making the jump
+                array[landing] = 2;
+                array[i] = 0;
+
+                // storing the jump
+                appendToLinkedList(list, i, 0);
+
+                FindSolutions(array, size, skip, list); // recursion
+
+                // undoing the jump to test other possible solutions
+                array[landing] = 1;
+                array[i] = 1;
+                // removing the last jump from the list
+                if (list->tail == list->head)
                 {
-                    current = current->next;
+                    free(list->head);
+                    list->head = NULL;
+                    list->tail = NULL;
                 }
-                free(list->tail);
-                current->next = NULL;
-                list->tail = current;
+                else
+                {
+                    Node *current = list->head;
+                    while (current->next != list->tail)
+                    {
+                        current = current->next;
+                    }
+                    free(list->tail);
+                    current->next = NULL;
+                    list->tail = current;
+                }
             }
         }
 
@@ -199,37 +203,42 @@ void FindSolutions(int *array, int size, int skip, LinkedList *list)
                 j--;
             }
         }
-        if (array[landing] == 1 && valid == 1)
+        if (landing < 0 || landing >= size)
+            valid = 0;
+        if (valid)
         {
-            // making the jump
-            array[landing] = 2;
-            array[i] = 0;
-
-            // storing the jump
-            appendToLinkedList(list, i, 1);
-
-            FindSolutions(array, size, skip, list); // recursion
-
-            // undoing the jump to test other possible solutions
-            array[landing] = 1;
-            array[i] = 1;
-            // removing the last jump from the list
-            if (list->tail == list->head)
+            if (array[landing] == 1)
             {
-                free(list->head);
-                list->head = NULL;
-                list->tail = NULL;
-            }
-            else
-            {
-                Node *current = list->head;
-                while (current->next != list->tail)
+                // making the jump
+                array[landing] = 2;
+                array[i] = 0;
+
+                // storing the jump
+                appendToLinkedList(list, i, 1);
+
+                FindSolutions(array, size, skip, list); // recursion
+
+                // undoing the jump to test other possible solutions
+                array[landing] = 1;
+                array[i] = 1;
+                // removing the last jump from the list
+                if (list->tail == list->head)
                 {
-                    current = current->next;
+                    free(list->head);
+                    list->head = NULL;
+                    list->tail = NULL;
                 }
-                free(list->tail);
-                current->next = NULL;
-                list->tail = current;
+                else
+                {
+                    Node *current = list->head;
+                    while (current->next != list->tail)
+                    {
+                        current = current->next;
+                    }
+                    free(list->tail);
+                    current->next = NULL;
+                    list->tail = current;
+                }
             }
         }
     }
