@@ -46,6 +46,7 @@ struct Graph *createGraph(int V)
 
 void addEdge(struct Graph *graph, int src, int dest)
 {
+    // printf("src: %d, dest: %d\n", src, dest);
     struct AdjListNode *check = NULL;
     struct AdjListNode *newNode = newAdjListNode(dest);
 
@@ -142,7 +143,7 @@ void enQueue(struct QueueNode **head, struct QueueNode **end, int data, int step
         *end = *head;
         return;
     }
-    struct QueueNode* temp = (*end);
+    struct QueueNode *temp = (*end);
     temp->next = newQueueItem(data, steps);
     (*end) = temp->next;
 }
@@ -213,21 +214,21 @@ void resetArray(int **arr, int size)
 /*BFS stands for BIG F[redacted] SEARCH*/
 int BFS(struct Graph *graph, int startNode, int endNode)
 {
-    int* visited = (int*) malloc(sizeof(int) * graph->V);
+    int *visited = (int *)malloc(sizeof(int) * graph->V);
     for (int i = 0; i < graph->V; i++)
     {
         visited[i] = 0;
     }
-    
+
     struct QueueNode *head = NULL;
     visited[startNode] = 1;
     struct QueueNode *end = NULL;
     enQueue(&head, &end, startNode, 0);
     while (!isEmpty(head))
-    { 
+    {
         // printQueue(head);
         struct QueueNode currentNode = deQueue(&head);
-        // printf("EXPLORTING CURRENT NODE: %d\n", currentNode.data);
+        // printf("EXPLORTING CURRENT NODE: %d, CURRENT STEPS %d\n", currentNode.data, currentNode.steps);
         if (currentNode.data == endNode)
         {
             free(visited);
@@ -244,6 +245,7 @@ int BFS(struct Graph *graph, int startNode, int endNode)
             }
             node = node->next;
         }
+        visited[currentNode.data] = 1;
         // printf("%d\n", !isEmpty(head));
     }
     free(visited);
@@ -270,7 +272,13 @@ int main()
         }
         if (str == '\n')
         {
+            if (graph->array[graph->V - 1].type == 0 && graph->array[graph->V - permaCol].type == 0 && permaCol > 1)
+            {
+                // printf("MAKING A WRAP JOIN %d -> %d\n", graph->V - 1, graph->V - permaCol);
+                addEdge(graph, graph->V - 1, graph->V - permaCol);
+            }
             row++;
+            col = 0;
             continue;
         }
         if (row < 1)
@@ -279,14 +287,13 @@ int main()
         }
         col++;
         graph->V++;
-        if(graph->V == size){
+        if (graph->V == size)
+        {
             size = size * 2;
             graph->array = (struct AdjList *)realloc(graph->array, size * sizeof(struct AdjList));
         }
-        // graph->visited = (int *)realloc(graph->visited, graph->V * sizeof(int));
         graph->array[graph->V - 1].head = NULL;
         graph->array[graph->V - 1].type = 1;
-        // graph->visited[graph->V - 1] = 0;
         if (str == '.')
         {
             graph->array[graph->V - 1].type = 0;
@@ -295,17 +302,27 @@ int main()
         {
             if (graph->array[graph->V - 1 - permaCol].type == 0 && graph->array[graph->V - 1].type == 0)
             {
-                // printf("\nChar: %c, Index up: %d, Type up: %d, Index: %d, Type: %d\n", str, graph->V -1 - permaCol, graph->array[graph->V -1 - permaCol].type, graph->V -1, graph->array[graph->V -1].type);
                 addEdge(graph, graph->V - 1 - permaCol, graph->V - 1);
             }
         }
-        if (col > 0)
+        if (col > 1)
         {
             if (graph->array[graph->V - 2].type == 0 && graph->array[graph->V - 1].type == 0)
             {
                 addEdge(graph, graph->V - 2, graph->V - 1);
             }
         }
+        
+    }
+    int y = 0;
+    for (int i = graph->V - permaCol; i < graph->V; i++)
+    {
+        // printf("I:%d, Y:%d", i , y);
+        if (graph->array[y].type == 0 && graph->array[i].type == 0)
+        {
+            addEdge(graph, y, i);
+        }
+        y++;
     }
 
     // printRelevantGraph(graph);
@@ -322,10 +339,10 @@ int main()
         // printf("%d %d %d %d\n", startY, startX, endY, endX);
         startNode = startX + (startY * permaCol);
         endNode = endX + (endY * permaCol);
+        // printf("start: %d, end:%d\n", startNode, endNode);
         // printf("CALLING BFS FROM NODE: %d, TO NODE: %d\n", startNode, endNode);
         BFS(graph, startNode, endNode);
         // printRelevantGraph(graph);
-        
     }
 
     return 0;
